@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.first.release.examnotes.activities.HomeViewModel" />
+        <variable
+            name="handlers"
+            type="com.first.release.examnotes.activities.HomeHandlers" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/gray"
+        android:orientation="vertical">
+
+        <!-- FIXME tab itemのfontとtextsizeを変更する-->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/home_and_history_tab_layout"
+            style="@style/home_and_history_tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="102dp"
+            android:elevation="14dp"
+            android:background="@color/white"
+            app:tabSelectedTextColor="@color/blackTwo"
+            app:tabTextColor="@color/black">
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/noto_serif_jp_black"
+                android:text="ホーム"/>
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/noto_serif_jp_black"
+                android:text="履歴" />
+        </com.google.android.material.tabs.TabLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <Button
+                android:layout_width="220dp"
+                android:layout_height="75dp"
+                android:layout_gravity="center"
+                android:background="@drawable/create_exam_button"
+                android:fontFamily="@font/noto_serif_jp_black"
+                android:onClick="@{handlers::onClickCreateExam}"
+                android:text="試験新規作成"
+                android:textSize="30dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/noto_serif_jp_black"
+                android:text="直近の試験"
+                android:textColor="@color/black"
+                android:textSize="22dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="30dp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/noto_serif_jp_black"
+                android:text="試験データがありません"
+                android:visibility="@{viewModel.nothingExamsVisibility}"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/exams_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+</layout>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="handlers"
+            type="com.first.release.examnotes.activities.ExamInsertEventHandlers" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/gray"
+        android:orientation="vertical">
+
+        <!-- FIXME tab itemのfontとtextsizeを変更する-->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/home_and_history_tab_layout"
+            style="@style/home_and_history_tab_layout"
+            app:tabSelectedTextColor="@color/blackTwo"
+            app:tabTextColor="@color/black"
+            android:layout_width="match_parent"
+            android:layout_height="102dp"
+            android:background="@color/white"
+            android:elevation="14dp">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/noto_serif_jp_black"
+                android:text="ホーム" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/noto_serif_jp_black"
+                android:text="履歴" />
+        </com.google.android.material.tabs.TabLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:textColor="@color/blue"
+            android:text="下書き保存する"
+            android:onClick="@{handlers::onClickSaveDraft}"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textColor="@color/red"
+            android:text="試験を削除する"
+            android:onClick="@{handlers::onClickRemoveExam}"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textColor="@color/blue"
+            android:text="試験へ進む"
+            android:onClick="@{handlers::onClickNext}" />
+
+    </LinearLayout>
+
+</layout>

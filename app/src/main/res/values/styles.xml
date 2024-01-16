@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="home_and_history_tab_layout" parent="Widget.Design.TabLayout"/>
+    <style name="SplashTheme.Launcher" parent="Theme.AppCompat.Light">
+        <item name="android:windowBackground">@drawable/application_icon_screen</item>
+    </style>
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="noto_sans_font_family">
+        <item name="android:fontFamily">@font/noto_sans_jp_black</item>
+    </style>
+    <style name="noto_serif_font_family">
+        <item name="android:fontFamily">@font/noto_serif_jp_black</item>
+    </style>
+    <style name="MineCustomTabText" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">20dp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:fontFamily">@font/noto_serif_jp_black</item>
+    </style>
+</resources>
