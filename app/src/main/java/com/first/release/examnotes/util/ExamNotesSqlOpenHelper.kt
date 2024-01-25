@@ -1,6 +1,5 @@
 package com.first.release.examnotes.util
 
-import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -23,7 +22,7 @@ val DB_VERSION = 1
 // DB名
 val DB_NAME = "exam_notes"
 
-public class ExamNotesSqlOpenHelper(
+class ExamNotesSqlOpenHelper(
     context: Context?,
     name: String? = DB_NAME,
     factory: SQLiteDatabase.CursorFactory?,
@@ -56,7 +55,7 @@ public class ExamNotesSqlOpenHelper(
     val UPDATED_AT = "updated_at"
 
     private val SQL_CREATE_EXAMS = "CREATE TABLE $EXAM_TABLE_NAME" + " (" +
-            ID + " INTEGER PRIMARY KEY," +
+            ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
             EXAM_NAME + " TEXT," +
             EXAM_QUESTION_COUNT + " INTEGER," +
             PASSING_LINE + " INTEGER," +
@@ -67,7 +66,7 @@ public class ExamNotesSqlOpenHelper(
             UPDATED_AT + " TEXT)"
 
     private val SQL_CREATE_ANSWERS = "CREATE TABLE $ANSWER_TABLE_NAME" + " (" +
-            ID + " INTEGER PRIMARY KEY," +
+            ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
             EXAM_ID + " INTEGER," +
             EXAM_NUM + " INTEGER," +
             ANSWER_TYPE + " INTEGER," +
@@ -89,49 +88,55 @@ public class ExamNotesSqlOpenHelper(
     private val SQL_EXIST_ANSWERS = "SELECT * FROM sqlite_master WHERE type='table' AND name=$ANSWER_TABLE_NAME;"
 
     override fun onCreate(db: SQLiteDatabase?) {
-        db?.beginTransaction()
-        try {
-            db?.execSQL(
-                SQL_CREATE_EXAMS
-            )
-            db?.execSQL(
-                SQL_CREATE_ANSWERS
-            )
-            db?.setTransactionSuccessful()
-        } catch (e: SQLException) {
-            // FIXME テーブル作成に失敗したと通知する　失敗した場合の導線どうすべきか
-        } finally {
-            db?.endTransaction()
+        db?.use { db ->
+            try {
+                db.beginTransaction()
+                db.execSQL(
+                    SQL_CREATE_EXAMS
+                )
+                db.execSQL(
+                    SQL_CREATE_ANSWERS
+                )
+                db.setTransactionSuccessful()
+            } catch (e: SQLException) {
+                // FIXME テーブル作成に失敗したと通知する　失敗した場合の導線どうすべきか
+            } finally {
+                db.endTransaction()
+            }
         }
       }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         // DBのバージョンが更新された場合、DBを削除し作成し直す
         if (oldVersion != newVersion) {
-            db?.beginTransaction()
-            try {
-                db?.execSQL(SQL_DELETE_EXAMS)
-                db?.execSQL(SQL_DELETE_ANSWERS)
-                db?.setTransactionSuccessful()
-                onCreate(db)
-            } catch (e: SQLException) {
-                // FIXME 通知する
-            } finally {
-                db?.endTransaction()
+            db?.use { db ->
+                try {
+                    db.beginTransaction()
+                    db.execSQL(SQL_DELETE_EXAMS)
+                    db.execSQL(SQL_DELETE_ANSWERS)
+                    db.setTransactionSuccessful()
+                    onCreate(db)
+                } catch (e: SQLException) {
+                    // FIXME 通知する
+                } finally {
+                    db.endTransaction()
+                }
             }
         }
     }
 
 
     // FIXME 各テーブルのデータ挿入　更新　削除　挿入時エスケープ処理
-    fun insertExam(contentValues: ContentValues) {
+    fun insertExam(exam: Exam): Int? {
+        var id: Int? = null
         try {
             this.writableDatabase.use { db ->
-                db.insert(EXAM_TABLE_NAME, null, contentValues)
+                id = db.insert(EXAM_TABLE_NAME, null, setExamForContentValues(exam)).toInt()
             }
         } catch (_: SQLException) {
         // FIXME 通知する
         }
+        return id
     }
 
     fun insertAnswer(contentValues: ContentValues) {
@@ -144,10 +149,10 @@ public class ExamNotesSqlOpenHelper(
         }
     }
 
-    fun updateExam(contentValues: ContentValues, id: Array<String>) {
+    fun updateExam(exam: Exam) {
         try {
             this.writableDatabase.use { db ->
-                db.update(EXAM_TABLE_NAME, contentValues, "id=?", id);
+                db.update(EXAM_TABLE_NAME, setExamForContentValues(exam), "id=?", arrayOf(exam.id.toString()))
             }
         } catch (_: SQLException) {
             // FIXME 通知する
@@ -157,27 +162,41 @@ public class ExamNotesSqlOpenHelper(
     fun updateAnswer(contentValues: ContentValues, id: Array<String>) {
         try {
             this.writableDatabase.use { db ->
-                db.update(ANSWER_TABLE_NAME, contentValues, "id=?", id);
+                db.update(ANSWER_TABLE_NAME, contentValues, "id=?", id)
             }
         } catch (_: SQLException) {
             // FIXME 通知する
         }
     }
 
-    fun deleteExam(contentValues: ContentValues, id: Array<String>) {
+    fun deleteExam(id: Array<String>) {
+        var removeExamId: Int? = null
         try {
             this.writableDatabase.use { db ->
-                db.delete(EXAM_TABLE_NAME, "id=?", id);
+                removeExamId = db.delete(EXAM_TABLE_NAME, "id=?", id)
+            }
+        } catch (_: SQLException) {
+            // FIXME 通知する
+        }
+        if (removeExamId == null) {
+            // FIXME 削除に失敗したことを伝える？
+        }
+    }
+
+    fun deleteAnswer(id: Array<String>) {
+        try {
+            this.writableDatabase.use { db ->
+                db.delete(ANSWER_TABLE_NAME, "id=?", id)
             }
         } catch (_: SQLException) {
             // FIXME 通知する
         }
     }
 
-    fun deleteAnswer(contentValues: ContentValues, id: Array<String>) {
+    fun deleteAnswerFromExamId(examId: Array<String>) {
         try {
             this.writableDatabase.use { db ->
-                db.delete(ANSWER_TABLE_NAME, "id=?", id);
+                db.delete(ANSWER_TABLE_NAME, "${EXAM_ID}=?", examId)
             }
         } catch (_: SQLException) {
             // FIXME 通知する
@@ -274,6 +293,17 @@ public class ExamNotesSqlOpenHelper(
             // FIXME 通知する
         }
         return answerList
+    }
+
+    private fun setExamForContentValues(exam: Exam): ContentValues {
+        val cv = ContentValues()
+        cv.put(EXAM_NAME, exam.name)
+        cv.put(EXAM_QUESTION_COUNT, exam.questionCount)
+        cv.put(PASSING_LINE, exam.passingLine)
+        cv.put(EXAM_MINUTES, exam.examMinutes)
+        cv.put(EXAM_STATUS, exam.status)
+        cv.put(REMARKS,exam.remarks)
+        return cv
     }
 }
 

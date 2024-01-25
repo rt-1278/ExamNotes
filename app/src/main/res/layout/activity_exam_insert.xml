@@ -19,24 +19,24 @@
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/home_and_history_tab_layout"
             style="@style/home_and_history_tab_layout"
-            app:tabSelectedTextColor="@color/blackTwo"
-            app:tabTextColor="@color/black"
             android:layout_width="match_parent"
             android:layout_height="102dp"
             android:background="@color/white"
-            android:elevation="14dp">
+            android:elevation="14dp"
+            app:tabSelectedTextColor="@color/blackTwo"
+            app:tabTextColor="@color/black">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/noto_serif_jp_black"
-                android:text="ホーム" />
+                android:text="@string/tab_home" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/noto_serif_jp_black"
-                android:text="履歴" />
+                android:text="@string/tab_history" />
         </com.google.android.material.tabs.TabLayout>
 
         <LinearLayout
@@ -44,35 +44,37 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
-            <ListView
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/exam_insert_list"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:onClick="@{handlers::onClickSaveDraft}"
+                android:text="@string/exam_insert_save_draft_button"
+                android:textColor="@color/blue" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:onClick="@{handlers::onClickRemoveExam}"
+                android:text="@string/exam_insert_remove_exam_button"
+                android:textColor="@color/red" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:onClick="@{handlers::onClickNext}"
+                android:text="@string/exam_insert_next_exam"
+                android:textColor="@color/blue" />
+
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:textColor="@color/blue"
-            android:text="下書き保存する"
-            android:onClick="@{handlers::onClickSaveDraft}"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:textColor="@color/red"
-            android:text="試験を削除する"
-            android:onClick="@{handlers::onClickRemoveExam}"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:textColor="@color/blue"
-            android:text="試験へ進む"
-            android:onClick="@{handlers::onClickNext}" />
-
     </LinearLayout>
 
 </layout>

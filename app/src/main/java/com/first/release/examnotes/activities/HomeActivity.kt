@@ -3,8 +3,6 @@ package com.first.release.examnotes.activities
 import android.content.Intent
 import android.database.SQLException
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.first.release.examnotes.databinding.ExamItemCellBinding
 import com.first.release.examnotes.model.examStatus
 import com.first.release.examnotes.util.DB_NAME
@@ -65,6 +64,7 @@ class HomeActivity : SourceActivity(), HomeHandlers {
         // adapterの生成　生成後viewにadapterをセットする
         homeAdapter = HomeAdapter(this, listOf())
         binding.examsList.adapter = homeAdapter
+        binding.examsList.layoutManager = LinearLayoutManager(this)
         // recyclerviewの区切り線を追加
         binding.examsList.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
 
@@ -155,8 +155,8 @@ class HomeActivity : SourceActivity(), HomeHandlers {
     override fun onClickCreateExam(view: View) {
         // 試験入力画面へ遷移する
         val intent = Intent(this, ExamInsertActivity::class.java)
+        intent.putExtra("fromCreateExam", true)
         startActivity(intent)
-        finish()
     }
 }
 

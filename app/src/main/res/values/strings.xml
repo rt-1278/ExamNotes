@@ -3,4 +3,9 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="tab_home">ホーム</string>
+    <string name="tab_history">履歴</string>
+    <string name="exam_insert_save_draft_button">下書き保存する</string>
+    <string name="exam_insert_remove_exam_button">試験を削除する</string>
+    <string name="exam_insert_next_exam">試験へ進む</string>
 </resources>

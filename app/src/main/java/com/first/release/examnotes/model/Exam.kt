@@ -1,36 +1,43 @@
 package com.first.release.examnotes.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import java.time.Instant
-import java.util.Date
 
-class Exam {
-    var id: Int? = null
-    var name: String? = null
-    var questionCount: Int? = null
-    var passingLine: Int? = null
-    var examMinutes: Int? = null
-    var status: Int? = null
-    var remarks: String? = null
-    var createdAt: Instant? = null
+@Parcelize
+data class Exam(
+    var id: Int? = null,
+    var name: String? = null,
+    var questionCount: Int? = null,
+    var passingLine: Int? = null,
+    var examMinutes: Int? = null,
+    var status: Int? = null,
+    var remarks: String? = null,
+    var createdAt: Instant? = null,
     var updatedAt: Instant? = null
-
-    public fun statusString(): String {
-        when(status) {
+) : Parcelable {
+    fun statusString(): String {
+        when (status) {
             examStatus.ProgressDraft.statusInt -> {
                 return "下書き作成中"
             }
+
             examStatus.CreatedDraft.statusInt -> {
                 return "下書き作成済"
             }
+
             examStatus.ProgressTest.statusInt -> {
                 return "試験実施中"
             }
+
             examStatus.EnteringAnswerResults.statusInt -> {
                 return "採点中"
             }
+
             examStatus.FinishTest.statusInt -> {
                 return "試験実施済"
             }
+
             else -> {
                 return ""
             }
