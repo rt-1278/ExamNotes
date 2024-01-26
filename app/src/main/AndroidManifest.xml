@@ -27,6 +27,16 @@
             android:screenOrientation="portrait"
             android:exported="true">
         </activity>
+        <activity
+            android:name=".activities.InsertActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".activities.AnswerActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+        </activity>
     </application>
 
 </manifest>

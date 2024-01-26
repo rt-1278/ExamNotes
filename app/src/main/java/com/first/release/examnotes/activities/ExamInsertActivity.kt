@@ -1,6 +1,7 @@
 package com.first.release.examnotes.activities
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -139,10 +141,11 @@ class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
                 exam?.let {
                     exam?.id = helper.insertExam(it) }
             }
-//            val intent = Intent(this, AnswerActivity::class.java)
-//            intent.putExtra("exam", exam)
-            // answerはonCreate時にexamIdを元に取得する
+            val intent = Intent(this, AnswerActivity::class.java)
+            intent.putExtra("exam", exam)
+            startActivity(intent)
             finish()
+            // answerはonCreate時にexamIdを元に取得する
         } catch(e: RuntimeException) {
             // FIXME 更新に失敗した場合、モーダルを表示して「端末内に保存できない。」　再作成を依頼する
         }
@@ -175,6 +178,18 @@ class ExamInsertCellViewAdapter(var exam: Exam?, val activity: ExamInsertActivit
             }
         }
     }
+
+    val rs = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+//                if (result.resultCode == 0) {
+        activity.exam = if (SDK_INT >= VERSION_CODES.TIRAMISU) {
+            result.data?.getParcelableExtra("exam", Exam::class.java)
+        } else {
+            result.data?.getParcelableExtra<Exam>("exam")
+        }
+        exam  = activity.exam
+        notifyDataSetChanged()
+//                }
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExamInsertCellViewHolder {
         val binding: ExamInsertItemCellBinding = DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
@@ -197,23 +212,11 @@ class ExamInsertCellViewAdapter(var exam: Exam?, val activity: ExamInsertActivit
 
         binding.examInsertItemValue.setOnClickListener {
             // 入力画面へ遷移する examオブジェクトを渡し、更新するフィールドをviewModelのkeyを渡す
-            // FIXME HomeActivityを入力画面へ
-//            val intent = Intent(activity, HomeActivity::class.java)
-//            intent.putExtra("exam", exam)
-//            intent.putExtra("examKey", binding.viewModel.key.value)
-//
-//            val rs = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {result ->
-////                if (result.resultCode == 0) {
-//                    activity.exam = if (SDK_INT >= VERSION_CODES.TIRAMISU) {
-//                        result.data?.getParcelableExtra("exam", Exam::class.java)
-//                    } else {
-//                        result.data?.getParcelableExtra<Exam>("exam")
-//                    }
-//                    binding.viewModel.exam.value  = activity.exam
-//                    notifyItemChanged(position)
-////                }
-//            }
-//            rs.launch(intent)
+            val intent = Intent(activity, InsertActivity::class.java)
+            intent.putExtra("exam", exam)
+            intent.putExtra("examKey", viewModel.key)
+
+            rs.launch(intent)
         }
     }
 }
