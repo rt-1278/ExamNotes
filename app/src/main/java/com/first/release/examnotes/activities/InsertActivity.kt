@@ -3,7 +3,6 @@ package com.first.release.examnotes.activities
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.RadioButton
 import androidx.activity.OnBackPressedCallback
@@ -48,7 +47,6 @@ class InsertActivity: SourceActivity(), InsertEventHandlers {
             intent.getParcelableExtra("answer", Answer::class.java)
         }
         answerKey =  intent.getStringExtra("answerKey")
-        Log.v("DEBUG", "ログ examKey=${examKey} exam=${exam}")
         // viewModelの初期化
         viewModel.initViewModelField(exam, examKey, answer, answerKey)
 
@@ -139,7 +137,6 @@ class InsertViewModel() : ViewModel() {
 
         if (examKey.value != null) {
             val v = getExamValAndInitLabelAndVisibility()
-            Log.v("DEBUG", "ログ v=${v} ${examKey.value}")
             if (v != null && v is String) {
                 textFieldString.value = v.toString()
             } else if (v is Int) {
@@ -172,7 +169,6 @@ class InsertViewModel() : ViewModel() {
     private fun getExamValAndInitLabelAndVisibility(): Any? {
         when(examKey.value) {
             ExamKey.NAME.examKey -> {
-                Log.v("DEBUG", "ログ一致")
                 textFieldStringLabel.value = examKey.value
                 textFieldStringVisibility.value = View.VISIBLE
                 return exam.value?.name
