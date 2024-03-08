@@ -16,16 +16,31 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textColor="@color/black"
-            android:text="@{viewModel.key}"/>
+            android:text="@{viewModel.key}" />
 
-        <TextView
-            android:id="@+id/exam_insert_item_value"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:textSize="18sp"
-            android:textColor="@color/black"
-            android:text="@{viewModel.value}"/>
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/exam_insert_item_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:text="@{viewModel.value}"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:text="@{viewModel.symbol}"/>
+        </LinearLayout>
 
     </LinearLayout>
 </layout>

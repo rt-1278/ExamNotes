@@ -1,0 +1,4 @@
+<resources>
+    <integer name="success">0</integer>
+    <integer name="cancel">1</integer>
+</resources>

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -133,21 +134,31 @@ class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
 
     override fun onClickNext(view: View) {
         // examを保存する。解答画面へ進む。画面はfinish()する
-        try{
-            if (exam?.id != null) {
-                exam?.let { helper.updateExam(it) }
-            } else {
-                // 新規の場合、新規で作成
-                exam?.let {
-                    exam?.id = helper.insertExam(it) }
+
+        // examのバリデーションを満たすか
+        val validationMessage = exam?.validateValue()
+        if (validationMessage.isNullOrBlank()) {
+            try{
+                if (exam?.id != null) {
+                    exam?.let { helper.updateExam(it) }
+                } else {
+                    // 新規の場合、新規で作成
+                    exam?.let {
+                        exam?.id = helper.insertExam(it) }
+                }
+                val intent = Intent(this, AnswerActivity::class.java)
+                intent.putExtra("exam", exam)
+                startActivity(intent)
+                finish()
+                // answerはonCreate時にexamIdを元に取得する
+            } catch(e: RuntimeException) {
+                // FIXME 更新に失敗した場合、モーダルを表示して「端末内に保存できない。」　再作成を依頼する
             }
-            val intent = Intent(this, AnswerActivity::class.java)
-            intent.putExtra("exam", exam)
-            startActivity(intent)
-            finish()
-            // answerはonCreate時にexamIdを元に取得する
-        } catch(e: RuntimeException) {
-            // FIXME 更新に失敗した場合、モーダルを表示して「端末内に保存できない。」　再作成を依頼する
+        } else {
+            val dialog = AlertDialog.Builder(this)
+                .setMessage(validationMessage)
+                .create()
+            dialog.show()
         }
     }
 }
@@ -163,33 +174,35 @@ interface ExamInsertEventHandlers {
 }
 
 // 以下RecyclerView用
+enum class ExamKey(val position: Int, val examKey: String) {
+    NAME(0, "試験名"), QUESTION_COUNT(1, "問題数"), PASS_LINE(2, "合格ライン"),
+    EXAM_MINUTES(3, "試験時間"), REMARKS(4, "備考");
 
+    companion object {
+        fun toKey(position: Int): String? {
+            return (Arrays.stream(values()).filter{  e -> e.position == position }.findFirst().orElse(null))?.examKey
+        }
+        fun examKey(position: Int): ExamKey? {
+            return (Arrays.stream(values()).filter{  e -> e.position == position }.findFirst().orElse(null))
+        }
+    }
+}
 class ExamInsertCellViewAdapter(var exam: Exam?, val activity: ExamInsertActivity) : RecyclerView.Adapter<ExamInsertCellViewHolder>() {
-    enum class ExamKey(val position: Int, val examKey: String) {
-        NAME(0, "試験名"), QUESTION_COUNT(1, "問題数"), PASS_LINE(2, "合格ライン"),
-        EXAM_MINUTES(3, "試験時間"), REMARKS(4, "備考");
 
-        companion object {
-            fun toKey(position: Int): String? {
-                return (Arrays.stream(values()).filter{  e -> e.position == position }.findFirst().orElse(null))?.examKey
-            }
-            fun examKey(position: Int): ExamKey? {
-                return (Arrays.stream(values()).filter{  e -> e.position == position }.findFirst().orElse(null))
+    val rs =
+        activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == activity.resources.getInteger(R.integer.success)) {
+                activity.exam = if (SDK_INT >= VERSION_CODES.TIRAMISU) {
+                    result.data?.getParcelableExtra("exam", Exam::class.java)
+                } else {
+                    result.data?.getParcelableExtra<Exam>("exam")
+                }
+                exam = activity.exam
+                notifyDataSetChanged()
+            } else {
+                // FIXME 戻ってきた時に recyclerViewの各セルのラベル表示がされない
             }
         }
-    }
-
-    val rs = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-//                if (result.resultCode == 0) {
-        activity.exam = if (SDK_INT >= VERSION_CODES.TIRAMISU) {
-            result.data?.getParcelableExtra("exam", Exam::class.java)
-        } else {
-            result.data?.getParcelableExtra<Exam>("exam")
-        }
-        exam  = activity.exam
-        notifyDataSetChanged()
-//                }
-    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExamInsertCellViewHolder {
         val binding: ExamInsertItemCellBinding = DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
@@ -222,27 +235,42 @@ class ExamInsertCellViewAdapter(var exam: Exam?, val activity: ExamInsertActivit
 }
 class ExamInsertCellViewModel(position: Int, exam: Exam?) : ViewModel() {
     var key = if (exam != null) {
-        ExamInsertCellViewAdapter.ExamKey.toKey(position)
+        val k = ExamKey.toKey(position)
+         ExamKey.toKey(position)
     } else {
         ""
     }
 
     var value = if (exam != null) {
-        when(ExamInsertCellViewAdapter.ExamKey.examKey(position)){
-            ExamInsertCellViewAdapter.ExamKey.NAME ->{
+        when(ExamKey.examKey(position)){
+            ExamKey.NAME ->{
                 exam.name
             }
-            ExamInsertCellViewAdapter.ExamKey.QUESTION_COUNT ->{
+            ExamKey.QUESTION_COUNT ->{
                 exam.questionCount?.toString()
             }
-            ExamInsertCellViewAdapter.ExamKey.PASS_LINE ->{
+            ExamKey.PASS_LINE ->{
                 exam.passingLine?.toString()
             }
-            ExamInsertCellViewAdapter.ExamKey.EXAM_MINUTES ->{
+            ExamKey.EXAM_MINUTES ->{
                 exam.examMinutes?.toString()
             }
-            ExamInsertCellViewAdapter.ExamKey.REMARKS ->{
+            ExamKey.REMARKS ->{
                 exam.remarks
+            }
+            else -> {""}
+        }
+    } else {
+        ""
+    }
+
+    val symbol = if (exam != null) {
+        when(ExamKey.examKey(position)){
+            ExamKey.PASS_LINE ->{
+                "%"
+            }
+            ExamKey.EXAM_MINUTES ->{
+                "分"
             }
             else -> {""}
         }

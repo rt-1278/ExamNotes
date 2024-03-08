@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.first.release.examnotes.model.Answer
@@ -87,40 +88,36 @@ class ExamNotesSqlOpenHelper(
 
     private val SQL_EXIST_ANSWERS = "SELECT * FROM sqlite_master WHERE type='table' AND name=$ANSWER_TABLE_NAME;"
 
-    override fun onCreate(db: SQLiteDatabase?) {
-        db?.use { db ->
-            try {
-                db.beginTransaction()
-                db.execSQL(
-                    SQL_CREATE_EXAMS
-                )
-                db.execSQL(
-                    SQL_CREATE_ANSWERS
-                )
-                db.setTransactionSuccessful()
-            } catch (e: SQLException) {
-                // FIXME テーブル作成に失敗したと通知する　失敗した場合の導線どうすべきか
-            } finally {
-                db.endTransaction()
-            }
+    override fun onCreate(db: SQLiteDatabase) {
+        try {
+            db.beginTransaction()
+            db.execSQL(
+                SQL_CREATE_EXAMS
+            )
+            db.execSQL(
+                SQL_CREATE_ANSWERS
+            )
+            db.setTransactionSuccessful()
+        } catch (e: SQLException) {
+            // FIXME テーブル作成に失敗したと通知する　失敗した場合の導線どうすべきか
+        } finally {
+            db.endTransaction()
         }
-      }
+    }
 
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         // DBのバージョンが更新された場合、DBを削除し作成し直す
         if (oldVersion != newVersion) {
-            db?.use { db ->
-                try {
-                    db.beginTransaction()
-                    db.execSQL(SQL_DELETE_EXAMS)
-                    db.execSQL(SQL_DELETE_ANSWERS)
-                    db.setTransactionSuccessful()
-                    onCreate(db)
-                } catch (e: SQLException) {
-                    // FIXME 通知する
-                } finally {
-                    db.endTransaction()
-                }
+            try {
+                db.beginTransaction()
+                db.execSQL(SQL_DELETE_EXAMS)
+                db.execSQL(SQL_DELETE_ANSWERS)
+                db.setTransactionSuccessful()
+                onCreate(db)
+            } catch (e: SQLException) {
+                // FIXME 通知する
+            } finally {
+                db.endTransaction()
             }
         }
     }
@@ -238,9 +235,11 @@ class ExamNotesSqlOpenHelper(
     fun selectExam(selection: String?, selectionColumns: Array<String>?): Exam? {
         var exam = Exam()
         try {
-            this.writableDatabase.use { db ->
+            this.readableDatabase.use { db ->
                 db.query(EXAM_TABLE_NAME, null, selection, selectionColumns, null, null, null).use { cursor ->
-                    exam = setExamMemberFromCursor(cursor, exam)
+                    cursor.use { c ->
+                        exam = setExamMemberFromCursor(c, exam)
+                    }
                 }
             }
         } catch (_: SQLException) {
@@ -252,10 +251,12 @@ class ExamNotesSqlOpenHelper(
     fun selectExams(selection: String?, selectionColumns: Array<String>?, orderBy: String? = null, limit: String? = null): List<Exam> {
         val examList = ArrayList<Exam>()
         try {
-            this.writableDatabase.use { db ->
+            this.readableDatabase.use { db ->
                 db.query(EXAM_TABLE_NAME, null, selection, selectionColumns, null, null, orderBy, limit).use { cursor ->
-                    while (cursor.moveToNext()) {
-                        examList.add(setExamMemberFromCursor(cursor, Exam()))
+                    cursor.use { c ->
+                        while (c.moveToNext()) {
+                            examList.add(setExamMemberFromCursor(c, Exam()))
+                        }
                     }
                 }
             }
@@ -268,9 +269,11 @@ class ExamNotesSqlOpenHelper(
     fun selectAnswer(selection: String?, selectionColumns: Array<String>?): Answer {
         var answer = Answer()
         try {
-            this.writableDatabase.use { db ->
+            this.readableDatabase.use { db ->
                 db.query(ANSWER_TABLE_NAME, null, selection, selectionColumns, null, null, null).use { cursor ->
-                    answer = setAnswerMemberFromCursor(cursor, answer)
+                    cursor.use { c ->
+                        answer = setAnswerMemberFromCursor(c, answer)
+                    }
                 }
             }
         } catch (_: SQLException) {
@@ -282,10 +285,12 @@ class ExamNotesSqlOpenHelper(
     fun selectAnswers(selection: String?, selectionColumns: Array<String>?): List<Answer> {
         val answerList = ArrayList<Answer>()
         try {
-            this.writableDatabase.use { db ->
+            this.readableDatabase.use { db ->
                 db.query(ANSWER_TABLE_NAME, null, selection, selectionColumns, null, null, null).use { cursor ->
-                    while (cursor.moveToNext()) {
-                        answerList.add(setAnswerMemberFromCursor(cursor, Answer()))
+                    cursor.use {  c ->
+                        while (cursor.moveToNext()) {
+                            answerList.add(setAnswerMemberFromCursor(cursor, Answer()))
+                        }
                     }
                 }
             }

@@ -8,4 +8,9 @@
     <string name="exam_insert_save_draft_button">下書き保存する</string>
     <string name="exam_insert_remove_exam_button">試験を削除する</string>
     <string name="exam_insert_next_exam">試験へ進む</string>
+    <string name="insert_radio_button_single">選択（単数）</string>
+    <string name="insert_radio_button_insert">入力</string>
+    <string name="insert_radio_button_multiple">選択（複数）</string>
+    <string name="insert_decision_link">確定</string>
+    <string name="cancel">キャンセル</string>
 </resources>

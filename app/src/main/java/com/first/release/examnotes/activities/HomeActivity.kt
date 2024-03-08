@@ -22,7 +22,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.first.release.examnotes.databinding.ExamItemCellBinding
-import com.first.release.examnotes.model.examStatus
+import com.first.release.examnotes.model.ExamStatus
 import com.first.release.examnotes.util.DB_NAME
 import com.first.release.examnotes.util.DB_VERSION
 import com.first.release.examnotes.util.ExamNotesSqlOpenHelper
@@ -36,6 +36,7 @@ class HomeActivity : SourceActivity(), HomeHandlers {
     val HISTORY_TAB = 1
     var examList: MutableList<Exam>? = null
     lateinit var homeAdapter: HomeAdapter
+    val helper = ExamNotesSqlOpenHelper(this, DB_NAME, null, DB_VERSION)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -189,23 +190,23 @@ class HomeAdapter(val activity: FragmentActivity, var examList: List<Exam>?) :
         // 生成後、画面要素がクリックされた場合のイベントをセットし、試験の状態によって画面遷移する
         binding.root.setOnClickListener {
             when (exam?.status) {
-                examStatus.ProgressDraft.statusInt -> {
+                ExamStatus.ProgressDraft.statusInt -> {
                     // 試験入力画面へ遷移
                 }
 
-                examStatus.CreatedDraft.statusInt -> {
+                ExamStatus.CreatedDraft.statusInt -> {
                     // 解答画面へ遷移
                 }
 
-                examStatus.ProgressTest.statusInt -> {
+                ExamStatus.ProgressTest.statusInt -> {
                     // 解答画面へ遷移
                 }
 
-                examStatus.EnteringAnswerResults.statusInt -> {
+                ExamStatus.EnteringAnswerResults.statusInt -> {
                     // 解答結果入力確認画面へ遷移
                 }
 
-                examStatus.FinishTest.statusInt -> {
+                ExamStatus.FinishTest.statusInt -> {
                     // 履歴詳細画面へ遷移
                 }
 
