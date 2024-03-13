@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +12,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -105,7 +103,6 @@ class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
                 exam?.let {
                     exam?.id = helper.insertExam(it) }
             }
-
             AlertDialog.Builder(this)
                 .setMessage("下書き保存しました。")
                 .setOnDismissListener {

@@ -9,28 +9,36 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:ellipsize="end"
+            android:lines="1"
             android:textSize="20dp"
             android:textColor="@color/black"
             android:text="@{viewModel.lastUpDatedAt}"/>
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="20dp"
+            android:ellipsize="end"
+            android:lines="1"
+            android:text="@{viewModel.examName}"
             android:textColor="@color/black"
-            android:text="@{viewModel.examName}"/>
+            android:textSize="20dp" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:ellipsize="end"
+            android:lines="1"
             android:textSize="20dp"
             android:textColor="@color/black"
             android:text="@{viewModel.examStatus}"/>

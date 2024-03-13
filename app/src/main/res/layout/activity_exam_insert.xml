@@ -56,7 +56,7 @@
                 android:layout_marginTop="40dp"
                 android:onClick="@{handlers::onClickSaveDraft}"
                 android:text="@string/exam_insert_save_draft_button"
-                android:textColor="@color/blue" />
+                android:textColor="@color/sky_blue" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -72,7 +72,7 @@
                 android:layout_marginTop="20dp"
                 android:onClick="@{handlers::onClickNext}"
                 android:text="@string/exam_insert_next_exam"
-                android:textColor="@color/blue" />
+                android:textColor="@color/sky_blue" />
 
         </LinearLayout>
     </LinearLayout>

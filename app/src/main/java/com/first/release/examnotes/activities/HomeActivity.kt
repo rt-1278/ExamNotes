@@ -26,6 +26,9 @@ import com.first.release.examnotes.model.ExamStatus
 import com.first.release.examnotes.util.DB_NAME
 import com.first.release.examnotes.util.DB_VERSION
 import com.first.release.examnotes.util.ExamNotesSqlOpenHelper
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class HomeActivity : SourceActivity(), HomeHandlers {
     private val viewModel: HomeViewModel by lazy {
@@ -128,12 +131,12 @@ class HomeActivity : SourceActivity(), HomeHandlers {
             examList = helper.selectExams(null, null, orderBy, limit).toMutableList()
             viewModel.examList.value = examList
 
-//            if (!::homeAdapter.isInitialized) {
-//                homeAdapter = HomeAdapter(this, listOf())
-//                binding.examsList.adapter = homeAdapter
-//            }
-//            homeAdapter.examList = examList
-//            homeAdapter.notifyDataSetChanged()
+            if (!::homeAdapter.isInitialized) {
+                homeAdapter = HomeAdapter(this, listOf())
+                binding.examsList.adapter = homeAdapter
+            }
+            homeAdapter.examList = examList
+            homeAdapter.notifyDataSetChanged()
 
         } catch(e: SQLException) {
             // FIXME firebaseに通知して、ユーザーには最新の試験データが取得できなかった。と伝える。
@@ -222,27 +225,21 @@ class HomeAdapter(val activity: FragmentActivity, var examList: List<Exam>?) :
 }
 
 class ExamItemCellViewModel(val exam: Exam) : ViewModel() {
-    // FIXME データが入り次第以下をコメントアウトされている内容に戻す
-    val lastUpDatedAt: String get() = "2023/12/10"
-//    val lastUpDatedAt: String get() = DateTimeFormatter.ofPattern("yyyy'/'MM'/'dd").format((exam.updatedAt?: Date()).toInstant().atZone(
-//        ZoneId.systemDefault()).toLocalDate())
-
-    val examName: String get() = "Java SE11 Gold..."
-
-    //    val examName: String get() = if (exam.name != null) exam.name!!.substring(0, Math.min(exam.name!!.length, 15)) + "..." else ""
-    val examStatus: String get() = "実施済"
-//    val examStatus: String get() = exam.statusString()
+    val lastUpDatedAt: String get() = DateTimeFormatter.ofPattern("yyyy'/'MM'/'dd").withZone(ZoneId.of("Asia/Tokyo")).format(exam.updatedAt?: Instant.now())
+    val examName: String get() = if (exam.name != null) exam.name!!.substring(0, Math.min(exam.name!!.length, 15)) + "..." else ""
+    val examStatus: String get() = exam.statusString()
 }
 
 class HomeViewModel : ViewModel() {
     val examList: MutableLiveData<List<Exam>> = MutableLiveData()
     val nothingExamsVisibility = MediatorLiveData<Int>().also { result ->
         result.addSource(examList) {
-            if (it.isEmpty()) {
-                View.GONE
-            } else {
-                View.GONE
-            }
+            result.value =
+                if (it.isEmpty()) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
         }
     }
 }
