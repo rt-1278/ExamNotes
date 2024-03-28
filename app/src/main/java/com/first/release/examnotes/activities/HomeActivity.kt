@@ -40,6 +40,8 @@ class HomeActivity : SourceActivity(), HomeHandlers {
     var examList: MutableList<Exam>? = null
     lateinit var homeAdapter: HomeAdapter
     val helper = ExamNotesSqlOpenHelper(this, DB_NAME, null, DB_VERSION)
+    val orderByUpdatedAt = helper.UPDATED_AT + " DESC"
+    val limit = "3"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,15 +55,8 @@ class HomeActivity : SourceActivity(), HomeHandlers {
 
 
         // DBから試験データを３件（最新の更新日時）を取得する
-        try{
-            val helper = ExamNotesSqlOpenHelper(this, DB_NAME, null, DB_VERSION)
-            val orderBy = helper.UPDATED_AT + " DESC"
-            val limit = "3"
-            examList = helper.selectExams(null, null, orderBy, limit).toMutableList()
-            viewModel.examList.value = examList
-        } catch(e: SQLException) {
-            // FIXME firebaseに通知して、ユーザーには最新の試験データが取得できなかった。と伝える。
-        }
+        examList = helper.selectExams(null, null, orderByUpdatedAt, limit).toMutableList()
+        viewModel.examList.value = examList
 
 
         // recyclerViewのオブジェクトを取得
@@ -125,10 +120,7 @@ class HomeActivity : SourceActivity(), HomeHandlers {
 
         // DBから試験データを３件（最新の更新日時）を取得する
         try{
-            val helper = ExamNotesSqlOpenHelper(this, DB_NAME, null, DB_VERSION)
-            val orderBy = helper.UPDATED_AT + " DESC"
-            val limit = "3"
-            examList = helper.selectExams(null, null, orderBy, limit).toMutableList()
+            examList = helper.selectExams(null, null, orderByUpdatedAt, limit).toMutableList()
             viewModel.examList.value = examList
 
             if (!::homeAdapter.isInitialized) {
@@ -195,25 +187,26 @@ class HomeAdapter(val activity: FragmentActivity, var examList: List<Exam>?) :
             when (exam?.status) {
                 ExamStatus.ProgressDraft.statusInt -> {
                     // 試験入力画面へ遷移
+                    val intent = Intent(activity, ExamInsertActivity::class.java)
+                    intent.putExtra("exam", exam)
+                    activity.startActivity(intent)
                 }
 
                 ExamStatus.CreatedDraft.statusInt -> {
-                    // 解答画面へ遷移
+                    // FIXME 解答一覧画面へ遷移
+
                 }
 
                 ExamStatus.ProgressTest.statusInt -> {
-                    // 解答画面へ遷移
+                    // FIXME 解答一覧画面へ遷移
                 }
 
                 ExamStatus.EnteringAnswerResults.statusInt -> {
-                    // 解答結果入力確認画面へ遷移
+                    // FIXME 解答結果入力確認画面へ遷移
                 }
 
                 ExamStatus.FinishTest.statusInt -> {
-                    // 履歴詳細画面へ遷移
-                }
-
-                else -> {
+                    // FIXME 履歴詳細画面へ遷移
                 }
             }
         }

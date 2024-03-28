@@ -19,6 +19,7 @@ import com.first.release.examnotes.R
 import com.first.release.examnotes.databinding.ActivityExamInsertBinding
 import com.first.release.examnotes.databinding.ExamInsertItemCellBinding
 import com.first.release.examnotes.model.Exam
+import com.first.release.examnotes.model.ExamStatus
 import com.first.release.examnotes.util.DB_NAME
 import com.first.release.examnotes.util.DB_VERSION
 import com.first.release.examnotes.util.ExamNotesSqlOpenHelper
@@ -27,9 +28,6 @@ import java.util.Arrays
 
 class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
     private lateinit var binding: ActivityExamInsertBinding
-//    private val viewModel: ExamInsertViewModel by lazy {
-//        ViewModelProvider(this).get(ExamInsertViewModel::class.java)
-//    }
     private lateinit var adapter: ExamInsertCellViewAdapter
     private var examId = 0
     var exam: Exam? = null
@@ -96,6 +94,7 @@ class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
     override fun onClickSaveDraft(view: View) {
         // examを保存して、前の画面に戻る
         try{
+            exam?.status = ExamStatus.ProgressDraft.statusInt
             if (exam?.id != null) {
                 exam?.let { helper.updateExam(it) }
             } else {
@@ -103,13 +102,20 @@ class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
                 exam?.let {
                     exam?.id = helper.insertExam(it) }
             }
-            AlertDialog.Builder(this)
-                .setMessage("下書き保存しました。")
-                .setOnDismissListener {
-                    finish()
-                }
-                .create()
-                .show()
+            if (exam?.id != null) {
+                AlertDialog.Builder(this)
+                    .setMessage("下書き保存しました。")
+                    .setOnDismissListener {
+                        finish()
+                    }
+                    .create()
+                    .show()
+            } else {
+                AlertDialog.Builder(this)
+                    .setMessage("下書き保存に失敗しました。")
+                    .create()
+                    .show()
+            }
         } catch(e: RuntimeException) {
             // FIXME 更新に失敗した場合、モーダルを表示して「端末内に保存できない。」　再作成を依頼する
         }
@@ -133,6 +139,7 @@ class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
         // examを保存する。解答画面へ進む。画面はfinish()する
 
         // examのバリデーションを満たすか
+        exam?.status = ExamStatus.CreatedDraft.statusInt
         val validationMessage = exam?.validateValue()
         if (validationMessage.isNullOrBlank()) {
             try{
@@ -143,7 +150,7 @@ class ExamInsertActivity : SourceActivity(),  ExamInsertEventHandlers{
                     exam?.let {
                         exam?.id = helper.insertExam(it) }
                 }
-                val intent = Intent(this, AnswerActivity::class.java)
+                val intent = Intent(this, AnswerListActivity::class.java)
                 intent.putExtra("exam", exam)
                 startActivity(intent)
                 finish()

@@ -19,7 +19,7 @@ import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 
 // DBバージョン
-val DB_VERSION = 1
+val DB_VERSION = 8
 // DB名
 val DB_NAME = "exam_notes"
 
@@ -63,8 +63,8 @@ class ExamNotesSqlOpenHelper(
             EXAM_MINUTES + " INTEGER," +
             EXAM_STATUS + " INTEGER," +
             REMARKS + " TEXT," +
-            CREATED_AT + " TEXT," +
-            UPDATED_AT + " TEXT)"
+            CREATED_AT + " TEXT  NOT NULL DEFAULT (DATETIME('now', 'localtime'))," +
+            UPDATED_AT + " TEXT  NOT NULL DEFAULT (DATETIME('now', 'localtime')))"
 
     private val SQL_CREATE_ANSWERS = "CREATE TABLE $ANSWER_TABLE_NAME" + " (" +
             ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -76,9 +76,18 @@ class ExamNotesSqlOpenHelper(
             ANSWER_RESULT + " TEXT," +
             TRUE_OR_FALSE + " BOOLEAN," +
             MEMO + " TEXT," +
-            CREATED_AT + " TEXT," +
-            UPDATED_AT + " TEXT)"
+            CREATED_AT + " TEXT  NOT NULL DEFAULT (DATETIME('now', 'localtime'))," +
+            UPDATED_AT + " TEXT  NOT NULL DEFAULT (DATETIME('now', 'localtime')))"
 
+    private val EXAM_UPDATE_AFTER_TRIGGER = "CREATE TRIGGER trigger_${EXAM_TABLE_NAME}_updated_at AFTER UPDATE ON ${EXAM_TABLE_NAME}" +
+            " BEGIN" +
+            " UPDATE ${EXAM_TABLE_NAME} SET updated_at = DATETIME('now', 'localtime') WHERE id == NEW.id;" +
+            " END;"
+
+    private val ANSWER_UPDATE_AFTER_TRIGGER = "CREATE TRIGGER trigger_${ANSWER_TABLE_NAME}_updated_at AFTER UPDATE ON ${ANSWER_TABLE_NAME}" +
+            " BEGIN" +
+            " UPDATE ${ANSWER_TABLE_NAME} SET updated_at = DATETIME('now', 'localtime') WHERE id == NEW.id;" +
+            " END;"
 
     private val SQL_DELETE_EXAMS = "DROP TABLE IF EXISTS $EXAM_TABLE_NAME"
 
@@ -91,14 +100,13 @@ class ExamNotesSqlOpenHelper(
     override fun onCreate(db: SQLiteDatabase) {
         try {
             db.beginTransaction()
-            db.execSQL(
-                SQL_CREATE_EXAMS
-            )
-            db.execSQL(
-                SQL_CREATE_ANSWERS
-            )
+            db.execSQL(SQL_CREATE_EXAMS)
+            db.execSQL(SQL_CREATE_ANSWERS)
+            db.execSQL(EXAM_UPDATE_AFTER_TRIGGER)
+            db.execSQL(ANSWER_UPDATE_AFTER_TRIGGER)
             db.setTransactionSuccessful()
         } catch (e: SQLException) {
+            Log.e("DEBUG", "ログ ${e.message} ${e.stackTraceToString()}")
             // FIXME テーブル作成に失敗したと通知する　失敗した場合の導線どうすべきか
         } finally {
             db.endTransaction()
@@ -113,9 +121,11 @@ class ExamNotesSqlOpenHelper(
                 db.execSQL(SQL_DELETE_EXAMS)
                 db.execSQL(SQL_DELETE_ANSWERS)
                 db.setTransactionSuccessful()
+                db.endTransaction()
                 onCreate(db)
             } catch (e: SQLException) {
                 // FIXME 通知する
+                Log.e("DEBUG", "ログ ${e.message} ${e.stackTraceToString()}")
             } finally {
                 db.endTransaction()
             }
@@ -129,9 +139,11 @@ class ExamNotesSqlOpenHelper(
         try {
             this.writableDatabase.use { db ->
                 id = db.insert(EXAM_TABLE_NAME, null, setExamForContentValues(exam)).toInt()
+                if ((id ?: 0) < 1) throw SQLException()
             }
         } catch (_: SQLException) {
-        // FIXME 通知する
+            // FIXME 通知する
+            id = null
         }
         return id
     }
@@ -243,7 +255,7 @@ class ExamNotesSqlOpenHelper(
                 }
             }
         } catch (_: SQLException) {
-            // FIXME 通知する
+            // FIXME firebaseに通知して、ユーザーには最新の試験データが取得できなかった。と伝える。
         }
         return exam
     }
@@ -261,7 +273,7 @@ class ExamNotesSqlOpenHelper(
                 }
             }
         } catch (_: SQLException) {
-            // FIXME 通知する
+            // FIXME firebaseに通知して、ユーザーには最新の試験データが取得できなかった。と伝える。
         }
         return examList
     }
@@ -277,16 +289,16 @@ class ExamNotesSqlOpenHelper(
                 }
             }
         } catch (_: SQLException) {
-            // FIXME 通知する
+            // FIXME firebaseに通知して、ユーザーには最新の回答データが取得できなかった。と伝える。
         }
         return answer
     }
 
-    fun selectAnswers(selection: String?, selectionColumns: Array<String>?): List<Answer> {
+    fun selectAnswers(selection: String?, selectionColumns: Array<String>?, orderBy: String? = null): List<Answer> {
         val answerList = ArrayList<Answer>()
         try {
             this.readableDatabase.use { db ->
-                db.query(ANSWER_TABLE_NAME, null, selection, selectionColumns, null, null, null).use { cursor ->
+                db.query(ANSWER_TABLE_NAME, null, selection, selectionColumns, null, null, orderBy).use { cursor ->
                     cursor.use {  c ->
                         while (cursor.moveToNext()) {
                             answerList.add(setAnswerMemberFromCursor(cursor, Answer()))
@@ -295,7 +307,7 @@ class ExamNotesSqlOpenHelper(
                 }
             }
         } catch (_: SQLException) {
-            // FIXME 通知する
+            // FIXME firebaseに通知して、ユーザーには最新の回答データが取得できなかった。と伝える。
         }
         return answerList
     }
@@ -307,7 +319,7 @@ class ExamNotesSqlOpenHelper(
         cv.put(PASSING_LINE, exam.passingLine)
         cv.put(EXAM_MINUTES, exam.examMinutes)
         cv.put(EXAM_STATUS, exam.status)
-        cv.put(REMARKS,exam.remarks)
+        cv.put(REMARKS, exam.remarks)
         return cv
     }
 }
